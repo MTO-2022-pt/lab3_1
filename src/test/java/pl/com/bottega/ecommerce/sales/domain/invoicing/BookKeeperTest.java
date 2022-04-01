@@ -31,6 +31,8 @@ class BookKeeperTest {
     private ProductData productData;
     @Mock
     private ProductData productData2;
+    @Mock
+    private ProductData productData3;
 
     private ClientData client;
     private InvoiceRequest request;
@@ -45,6 +47,7 @@ class BookKeeperTest {
         productData2 = mock(ProductData.class);
         request = new InvoiceRequest(client);
         invoice = new Invoice(Id.generate(), client);
+        productData3 = mock(ProductData.class);
     }
 
     @Test
@@ -108,5 +111,37 @@ class BookKeeperTest {
         bookKeeper.issuance(request, taxPolicy);
 
         assertEquals(invoice.getItems().size(), 2);
+    }
+
+    @Test
+    void doNotCallCalculateTax() {
+        when(factory.create(client)).thenReturn(invoice);
+
+        bookKeeper.issuance(request, taxPolicy);
+
+        Mockito.verify(taxPolicy, times(0)).calculateTax(any(ProductType.class), any(Money.class));
+    }
+
+    @Test
+    void callCalculateTaxThrice() {
+        when(taxPolicy.calculateTax(any(ProductType.class), any(Money.class))).thenReturn(new Tax(new Money(BigDecimal.ONE), "tax"));
+        when(productData.getType()).thenReturn(ProductType.STANDARD);
+        when(productData2.getType()).thenReturn(ProductType.FOOD);
+        when(productData3.getType()).thenReturn(ProductType.DRUG);
+
+        RequestItem item = new RequestItem(productData, 1, new Money(3));
+        request.add(item);
+
+        RequestItem item2 = new RequestItem(productData2, 3, new Money(5));
+        request.add(item2);
+
+        RequestItem item3 = new RequestItem(productData3, 5, new Money(11));
+        request.add(item3);
+
+        when(factory.create(client)).thenReturn(invoice);
+
+        bookKeeper.issuance(request, taxPolicy);
+
+        Mockito.verify(taxPolicy, times(3)).calculateTax(any(ProductType.class), any(Money.class));
     }
 }
