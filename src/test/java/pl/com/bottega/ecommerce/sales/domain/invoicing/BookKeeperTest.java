@@ -25,15 +25,11 @@ class BookKeeperTest {
     private InvoiceFactory factory;
     @Mock
     private TaxPolicy taxPolicy;
-    @Mock
-    private BookKeeper bookKeeper;
-    @Mock
-    private ProductData productData;
-    @Mock
-    private ProductData productData2;
-    @Mock
-    private ProductData productData3;
 
+    private BookKeeper bookKeeper;
+    private ProductData productData;
+    private ProductData productData2;
+    private ProductData productData3;
     private ClientData client;
     private InvoiceRequest request;
     private Invoice invoice;
