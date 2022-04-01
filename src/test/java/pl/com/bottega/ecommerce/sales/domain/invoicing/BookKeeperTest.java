@@ -88,4 +88,25 @@ class BookKeeperTest {
 
         assertEquals(invoice.getItems().size(), 0);
     }
+
+    @Test
+    void invoiceTwoPositions() {
+        when(taxPolicy.calculateTax(any(ProductType.class), any(Money.class))).thenReturn(new Tax(new Money(BigDecimal.ONE), "tax"));
+
+        when(productData.getType()).thenReturn(ProductType.STANDARD);
+        when(productData2.getType()).thenReturn(ProductType.FOOD);
+
+        RequestItem item = new RequestItem(productData, 1, new Money(3));
+        request.add(item);
+
+        RequestItem item2 = new RequestItem(productData2, 3, new Money(5));
+        request.add(item2);
+
+
+        when(factory.create(client)).thenReturn(invoice);
+
+        bookKeeper.issuance(request, taxPolicy);
+
+        assertEquals(invoice.getItems().size(), 2);
+    }
 }
