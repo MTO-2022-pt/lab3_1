@@ -84,4 +84,40 @@ class BookKeeperTest {
         assertEquals(invoice.getItems().get(1).getQuantity(), requestItem2.getQuantity());
     }
 
+    @Test
+    void myTest2_threeRequestItemsCalledTwiceTest(){
+        Mockito.when(taxPolicyMock.calculateTax(any(ProductType.class), any(Money.class)))
+                .thenReturn(new Tax(Money.ZERO, "Example Tax 1"))
+                .thenReturn(new Tax(Money.ZERO, "Example Tax 2"))
+                .thenReturn(new Tax(Money.ZERO, "Example Tax 3"));
+        Mockito.when(factoryMock.create(any(ClientData.class))).thenReturn(new Invoice(Id.generate(), clientData));
+        RequestItem requestItem1 = new RequestItem(productData[0], 2, Money.ZERO);
+        RequestItem requestItem2 = new RequestItem(productData[1], 4, Money.ZERO);
+        RequestItem requestItem3 = new RequestItem(productData[2], 8, Money.ZERO);
+        invoiceRequest.add(requestItem1);
+        invoiceRequest.add(requestItem2);
+        invoiceRequest.add(requestItem3);
+        Invoice invoice1 = bookKeeper.issuance(invoiceRequest, taxPolicyMock);
+        Invoice invoice2 = bookKeeper.issuance(invoiceRequest, taxPolicyMock);
+        int size1 = invoice1.getItems().size();
+        int size2 = invoice2.getItems().size();
+        assertEquals(size1, size2, 3);
+    }
+
+    @Test
+    void myTest3_fiveRepeatRequestItemsTest(){
+        Mockito.when(taxPolicyMock.calculateTax(any(ProductType.class), any(Money.class)))
+                .thenReturn(new Tax(Money.ZERO, "Example Tax 1"));
+        Mockito.when(factoryMock.create(any(ClientData.class))).thenReturn(new Invoice(Id.generate(), clientData));
+        RequestItem requestItem1 = new RequestItem(productData[0], 2, Money.ZERO);
+        invoiceRequest.add(requestItem1);
+        invoiceRequest.add(requestItem1);
+        invoiceRequest.add(requestItem1);
+        invoiceRequest.add(requestItem1);
+        invoiceRequest.add(requestItem1);
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicyMock);
+        int size = invoice.getItems().size();
+        assertEquals(size, 5);
+    }
+
 }
