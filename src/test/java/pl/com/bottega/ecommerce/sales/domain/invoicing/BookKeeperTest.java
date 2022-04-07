@@ -44,11 +44,14 @@ class BookKeeperTest {
                 (new Product(Id.generate(), Money.ZERO, "Drug", ProductType.DRUG)).generateSnapshot(),
                 (new Product(Id.generate(), Money.ZERO, "Food", ProductType.FOOD)).generateSnapshot()
         };
+
+        Mockito.when(factoryMock.create(any(ClientData.class)))
+                .thenReturn(new Invoice(Id.generate(), clientData));
+
     }
 
     @Test
     void myTest1_emptyInvoiceRequestTest(){
-        Mockito.when(factoryMock.create(any(ClientData.class))).thenReturn(new Invoice(Id.generate(), clientData));
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicyMock);
         int size = invoice.getItems().size();
         assertEquals(size, 0);
@@ -56,8 +59,8 @@ class BookKeeperTest {
 
     @Test
     void testCase1_oneRequestItemTest(){
-        Mockito.when(taxPolicyMock.calculateTax(any(ProductType.class), any(Money.class))).thenReturn(new Tax(Money.ZERO, "Example Tax 1"));
-        Mockito.when(factoryMock.create(any(ClientData.class))).thenReturn(new Invoice(Id.generate(), clientData));
+        Mockito.when(taxPolicyMock.calculateTax(any(ProductType.class), any(Money.class)))
+                .thenReturn(new Tax(Money.ZERO, "Example Tax 1"));
         RequestItem requestItem = new RequestItem(productData[0], 1, Money.ZERO);
         invoiceRequest.add(requestItem);
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicyMock);
@@ -70,7 +73,6 @@ class BookKeeperTest {
         Mockito.when(taxPolicyMock.calculateTax(any(ProductType.class), any(Money.class)))
                 .thenReturn(new Tax(Money.ZERO, "Example Tax 2"))
                 .thenReturn(new Tax(Money.ZERO, "Example Tax 3"));
-        Mockito.when(factoryMock.create(any(ClientData.class))).thenReturn(new Invoice(Id.generate(), clientData));
         RequestItem requestItem1 = new RequestItem(productData[1], 2, Money.ZERO);
         RequestItem requestItem2 = new RequestItem(productData[2], 4, Money.ZERO);
         invoiceRequest.add(requestItem1);
@@ -90,7 +92,6 @@ class BookKeeperTest {
                 .thenReturn(new Tax(Money.ZERO, "Example Tax 1"))
                 .thenReturn(new Tax(Money.ZERO, "Example Tax 2"))
                 .thenReturn(new Tax(Money.ZERO, "Example Tax 3"));
-        Mockito.when(factoryMock.create(any(ClientData.class))).thenReturn(new Invoice(Id.generate(), clientData));
         RequestItem requestItem1 = new RequestItem(productData[0], 2, Money.ZERO);
         RequestItem requestItem2 = new RequestItem(productData[1], 4, Money.ZERO);
         RequestItem requestItem3 = new RequestItem(productData[2], 8, Money.ZERO);
@@ -108,13 +109,9 @@ class BookKeeperTest {
     void myTest3_fiveRepeatRequestItemsTest(){
         Mockito.when(taxPolicyMock.calculateTax(any(ProductType.class), any(Money.class)))
                 .thenReturn(new Tax(Money.ZERO, "Example Tax 1"));
-        Mockito.when(factoryMock.create(any(ClientData.class))).thenReturn(new Invoice(Id.generate(), clientData));
         RequestItem requestItem1 = new RequestItem(productData[0], 2, Money.ZERO);
-        invoiceRequest.add(requestItem1);
-        invoiceRequest.add(requestItem1);
-        invoiceRequest.add(requestItem1);
-        invoiceRequest.add(requestItem1);
-        invoiceRequest.add(requestItem1);
+        for(int i = 0; i < 5; i++)
+            invoiceRequest.add(requestItem1);
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicyMock);
         int size = invoice.getItems().size();
         assertEquals(size, 5);
