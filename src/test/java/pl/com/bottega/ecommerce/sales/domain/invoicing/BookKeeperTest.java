@@ -29,7 +29,6 @@ class BookKeeperTest {
 
     ProductData[] productData;
 
-
     @BeforeEach
     void setUp(){
 
@@ -48,7 +47,15 @@ class BookKeeperTest {
     }
 
     @Test
-    void test(){
+    void myTest1_emptyInvoiceRequestTest(){
+        Mockito.when(factoryMock.create(any(ClientData.class))).thenReturn(new Invoice(Id.generate(), clientData));
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicyMock);
+        int size = invoice.getItems().size();
+        assertEquals(size, 0);
+    }
+
+    @Test
+    void testCase1_oneRequestItemTest(){
         Mockito.when(taxPolicyMock.calculateTax(any(ProductType.class), any(Money.class))).thenReturn(new Tax(Money.ZERO, "Example Tax 1"));
         Mockito.when(factoryMock.create(any(ClientData.class))).thenReturn(new Invoice(Id.generate(), clientData));
         RequestItem requestItem = new RequestItem(productData[0], 1, Money.ZERO);
@@ -59,7 +66,7 @@ class BookKeeperTest {
     }
 
     @Test
-    void test2(){
+    void testCase2_twoRequestItemsTestWithValuesCheck(){
         Mockito.when(taxPolicyMock.calculateTax(any(ProductType.class), any(Money.class)))
                 .thenReturn(new Tax(Money.ZERO, "Example Tax 2"))
                 .thenReturn(new Tax(Money.ZERO, "Example Tax 3"));
