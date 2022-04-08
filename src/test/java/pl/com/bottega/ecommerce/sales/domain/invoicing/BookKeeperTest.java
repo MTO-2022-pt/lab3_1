@@ -37,24 +37,44 @@ class BookKeeperTest {
         assertEquals(1, bk.issuance(this.testClass.getInvoiceRequest(), taxPolicy).getItems().size());
     }
 
+    //żądanie wydania faktury z dwiema pozycjami powinno wywołać metodę calculateTax dwa razy
     @Test
-    void doubleRequestShouldCallCalculateTaxTwice(){
+    void doubleRequestShouldCallCalculateTaxTwice() {
         when(taxPolicy.calculateTax(any(), any())).thenReturn(this.testClass.getTax());
         testClass.addItemToRequest();
         testClass.addItemToRequest();
 
-        bk.issuance(testClass.getInvoiceRequest(),taxPolicy);
+        bk.issuance(testClass.getInvoiceRequest(), taxPolicy);
         Mockito.verify(taxPolicy, times(2)).calculateTax(any(), any());
     }
 
     @Test
-    void zeroItemShouldReturnZero(){
+    void zeroItemShouldReturnZero() {
         assertEquals(0, bk.issuance(this.testClass.getInvoiceRequest(), taxPolicy).getItems().size());
     }
 
     @Test
-    void zeroRequestShouldCallCalculateTaxZeroTimes(){
-        bk.issuance(testClass.getInvoiceRequest(),taxPolicy);
+    void zeroRequestShouldCallCalculateTaxZeroTimes() {
+        bk.issuance(testClass.getInvoiceRequest(), taxPolicy);
         Mockito.verify(taxPolicy, times(0)).calculateTax(any(), any());
+    }
+
+    @Test
+    void hundredRequestShouldReturnHundredInvoice() {
+        when(taxPolicy.calculateTax(any(), any())).thenReturn(this.testClass.getTax());
+        for (int i = 0; i < 100; i++) testClass.addItemToRequest();
+
+        assertEquals(100, bk.issuance(this.testClass.getInvoiceRequest(), taxPolicy).getItems().size());
+    }
+
+    @Test
+    void hundredRequestShouldCallCalculateTaxHundredTimes() {
+        when(taxPolicy.calculateTax(any(), any())).thenReturn(this.testClass.getTax());
+
+        for (int i = 0; i < 100; i++) testClass.addItemToRequest();
+
+        bk.issuance(testClass.getInvoiceRequest(), taxPolicy);
+
+        Mockito.verify(taxPolicy, times(100)).calculateTax(any(), any());
     }
 }
