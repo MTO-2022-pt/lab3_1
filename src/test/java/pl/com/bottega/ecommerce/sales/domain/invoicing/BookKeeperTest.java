@@ -49,11 +49,26 @@ class BookKeeperTest {
     }
 
     @Test
+    void invoicePriceGross() {
+        invoiceRequest.add(requestItem);
+        assertEquals(product.getPrice().add(taxPolicy.calculateTax(ProductType.FOOD, product.getPrice()).getAmount()),
+                bookKeeper.issuance(invoiceRequest, taxPolicy).getItems().get(0).getGros());
+    }
+
+    @Test
+    void invoicePriceNet() {
+        invoiceRequest.add(requestItem);
+        assertEquals(product.getPrice(),  bookKeeper.issuance(invoiceRequest, taxPolicy).getItems().get(0).getNet());
+    }
+
+    @Test
     void invoiceCalculateTax() {
         invoiceRequest.add(requestItem);
         invoiceRequest.add(requestItem);
         bookKeeper.issuance(invoiceRequest, taxPolicy);
         verify(taxPolicy, times(2)).calculateTax(ProductType.FOOD, product.getPrice());
     }
+
+
 
 }
