@@ -47,7 +47,7 @@ class BookKeeperTest {
         Money money = new Money(200.00);
         Product product = new Product(Id.generate(), money, "Sushi", ProductType.FOOD);
         ProductData productData = product.generateSnapshot();
-        
+
         invoiceRequest.add(new RequestItem(productData, 1, productData.getPrice()));
 
         when(taxPolicy.calculateTax(ProductType.FOOD, money)).thenReturn(new Tax(new Money(20.50), "testTax"));
@@ -55,6 +55,23 @@ class BookKeeperTest {
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
 
         assertEquals(1, invoice.getItems().size(), "Returned items count is not equal to requested");
+    }
+
+    @Test
+    void shouldReturnInvoiceWithTheSameNetAsInRequestedInvoice() {
+        Money net = new Money(200.00);
+        Tax tax = new Tax(new Money(20.50), "testTax");
+
+        Product product = new Product(Id.generate(), net, "Sushi", ProductType.FOOD);
+        ProductData productData = product.generateSnapshot();
+
+        invoiceRequest.add(new RequestItem(productData, 1, productData.getPrice()));
+
+        when(taxPolicy.calculateTax(ProductType.FOOD, net)).thenReturn(tax);
+
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+
+        assertEquals(product.getPrice(), invoice.getItems().get(0).getNet());
     }
 
     @Test
@@ -74,6 +91,15 @@ class BookKeeperTest {
         bookKeeper.issuance(invoiceRequest, taxPolicy);
 
         verify(taxPolicy, times(2)).calculateTax(ProductType.FOOD, money);
+    }
+
+    @Test
+    void shouldNotCallCalculateTaxWhenRequestInvoiceWithNoItem() {
+        Money money = new Money(200.00);
+
+        bookKeeper.issuance(invoiceRequest, taxPolicy);
+
+        verify(taxPolicy, times(0)).calculateTax(ProductType.FOOD, money);
     }
 
 }
