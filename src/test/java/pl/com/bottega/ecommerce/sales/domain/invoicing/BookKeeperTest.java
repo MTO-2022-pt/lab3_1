@@ -69,6 +69,21 @@ class BookKeeperTest {
         verify(taxPolicy, times(2)).calculateTax(ProductType.FOOD, product.getPrice());
     }
 
+    @Test
+    void invoiceCalculateTaxOne() {
+        invoiceRequest.add(requestItem);
+        bookKeeper.issuance(invoiceRequest, taxPolicy);
+        verify(taxPolicy, times(1)).calculateTax(ProductType.FOOD, product.getPrice());
+    }
+
+    @Test
+    void invoiceCalculateTaxThree() {
+        invoiceRequest.add(requestItem);
+        invoiceRequest.add(requestItem);
+        invoiceRequest.add(requestItem);
+        bookKeeper.issuance(invoiceRequest, taxPolicy);
+        verify(taxPolicy, times(3)).calculateTax(ProductType.FOOD, product.getPrice());
+    }
 
 
 }
