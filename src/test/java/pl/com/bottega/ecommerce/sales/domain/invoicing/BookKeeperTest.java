@@ -18,12 +18,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @ExtendWith(MockitoExtension.class)
 class BookKeeperTest {
     private TestClass testClass;
+    private BookKeeper bk;
     @Mock
     TaxPolicy taxPolicy;
 
     @BeforeEach
     void setUp() throws Exception {
         this.testClass = new TestClass();
+        bk = new BookKeeper(new InvoiceFactory());
     }
 
     //żądanie wydania faktury z jedną pozycją powinno zwrócić fakturę z jedną pozycją
@@ -32,7 +34,6 @@ class BookKeeperTest {
         when(taxPolicy.calculateTax(any(), any())).thenReturn(this.testClass.getTax());
         testClass.addItemToRequest();
 
-        BookKeeper bk = new BookKeeper(new InvoiceFactory());
         assertEquals(1, bk.issuance(this.testClass.getInvoiceRequest(), taxPolicy).getItems().size());
     }
 
@@ -42,9 +43,12 @@ class BookKeeperTest {
         testClass.addItemToRequest();
         testClass.addItemToRequest();
 
-        BookKeeper bk = new BookKeeper(new InvoiceFactory());
         bk.issuance(testClass.getInvoiceRequest(),taxPolicy);
         Mockito.verify(taxPolicy, times(2)).calculateTax(any(), any());
     }
 
+    @Test
+    void zeroItemShouldReturnZero(){
+        assertEquals(0, bk.issuance(this.testClass.getInvoiceRequest(), taxPolicy).getItems().size());
+    }
 }
