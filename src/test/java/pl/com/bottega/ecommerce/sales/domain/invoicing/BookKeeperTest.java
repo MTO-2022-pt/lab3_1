@@ -3,8 +3,7 @@ package pl.com.bottega.ecommerce.sales.domain.invoicing;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -52,6 +51,35 @@ class BookKeeperTest {
         when(taxPolicyMock.calculateTax(any(), any())).thenReturn(taxMock);
         Invoice testInvoice = bookKeeper.issuance(invoiceRequest, taxPolicyMock);
         assertEquals(1, testInvoice.getItems().size());
+    }
+
+    @Test
+    void invokeCalculateTaxTwice(){
+        when(invoiceFactoryMock.create(clientMock)).thenReturn(new Invoice(Id.generate(), clientMock));
+        BookKeeper bookKeeper = new BookKeeper(invoiceFactoryMock);
+        InvoiceRequest invoiceRequest = new InvoiceRequest(clientMock);
+        invoiceRequest.add(requestItem);
+        invoiceRequest.add(requestItem);
+        when(taxPolicyMock.calculateTax(any(), any())).thenReturn(taxMock);
+        Invoice testInvoice = bookKeeper.issuance(invoiceRequest, taxPolicyMock);
+        verify(taxPolicyMock, times(2)).calculateTax(any(), any());
+    }
+
+    @Test
+    void invokeCalculateTaxZeroTimes(){
+        when(invoiceFactoryMock.create(clientMock)).thenReturn(new Invoice(Id.generate(), clientMock));
+        BookKeeper bookKeeper = new BookKeeper(invoiceFactoryMock);
+        InvoiceRequest invoiceRequest = new InvoiceRequest(clientMock);
+        bookKeeper.issuance(invoiceRequest, taxPolicyMock);
+        verify(taxPolicyMock, times(0)).calculateTax(any(), any());
+    }
+
+    @Test
+    void emptyInvoice(){
+        when(invoiceFactoryMock.create(clientMock)).thenReturn(new Invoice(Id.generate(), clientMock));
+        BookKeeper bookKeeper = new BookKeeper(invoiceFactoryMock);
+        InvoiceRequest invoiceRequest = new InvoiceRequest(clientMock);
+        assertEquals(0, bookKeeper.issuance(invoiceRequest, taxPolicyMock).getItems().size());
     }
 
 }
