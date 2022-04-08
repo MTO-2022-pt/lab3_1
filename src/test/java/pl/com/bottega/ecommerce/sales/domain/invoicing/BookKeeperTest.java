@@ -1,7 +1,7 @@
 package pl.com.bottega.ecommerce.sales.domain.invoicing;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,31 +22,38 @@ class BookKeeperTest {
     static BookKeeper bookKeeper;
     static Product product;
     static InvoiceRequest invoiceRequest;
+    static RequestItem requestItem;
 
     @Mock
     static TaxPolicy taxPolicy;
-
 
     @BeforeAll
     static void setUp() {
         bookKeeper = new BookKeeper(new InvoiceFactory());
         clientData = new ClientData(Id.generate(), "Tomasz");
         product = new Product(Id.generate(), new Money(10.20), "Cheese", ProductType.FOOD);
-        when(taxPolicy.calculateTax(ProductType.FOOD, product.getPrice()))
-                .thenReturn(new Tax(new Money(5), "test"));
-
+        requestItem = new RequestItem(product.generateSnapshot(), 1, product.getPrice());
     }
 
     @BeforeEach
     void setUpBeforeEach() {
         invoiceRequest = new InvoiceRequest(clientData);
+        when(taxPolicy.calculateTax(ProductType.FOOD, product.getPrice()))
+                .thenReturn(new Tax(new Money(5), "test"));
     }
 
     @Test
     void invoiceItemsSize() {
-        RequestItem requestItem = new RequestItem(product.generateSnapshot(), 1, product.getPrice());
         invoiceRequest.add(requestItem);
         assertEquals(1, bookKeeper.issuance(invoiceRequest, taxPolicy).getItems().size());
+    }
+
+    @Test
+    void invoiceCalculateTax() {
+        invoiceRequest.add(requestItem);
+        invoiceRequest.add(requestItem);
+        bookKeeper.issuance(invoiceRequest, taxPolicy);
+        verify(taxPolicy, times(2)).calculateTax(ProductType.FOOD, product.getPrice());
     }
 
 }
