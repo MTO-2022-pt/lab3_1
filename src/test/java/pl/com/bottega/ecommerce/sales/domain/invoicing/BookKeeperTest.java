@@ -51,4 +51,10 @@ class BookKeeperTest {
     void zeroItemShouldReturnZero(){
         assertEquals(0, bk.issuance(this.testClass.getInvoiceRequest(), taxPolicy).getItems().size());
     }
+
+    @Test
+    void zeroRequestShouldCallCalculateTaxZeroTimes(){
+        bk.issuance(testClass.getInvoiceRequest(),taxPolicy);
+        Mockito.verify(taxPolicy, times(0)).calculateTax(any(), any());
+    }
 }
