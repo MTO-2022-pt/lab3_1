@@ -22,30 +22,30 @@ import pl.com.bottega.ecommerce.sharedkernel.Money;
 @ExtendWith(MockitoExtension.class)
 class BookKeeperTest {
     
-    private ClientData clientData;
+    private static ClientData clientData;
     private InvoiceRequest invoiceRequest;
-    private InvoiceFactory invoiceFactory;
-    private BookKeeper bookKeeper;
+    private static InvoiceFactory invoiceFactory;
+    private static BookKeeper bookKeeper;
     
     @Mock
-    private TaxPolicy taxPolicy;
+    private static TaxPolicy taxPolicy;
 
     @BeforeAll
-    void setUP() throws Exception {
+    static void setUp() throws Exception {
         clientData = new ClientData(Id.generate(), "franek");
         invoiceFactory = new InvoiceFactory();
         bookKeeper = new BookKeeper(invoiceFactory);
     }
     
     @BeforeEach
-    void setUp() throws Exception {
+    void setUpBeforeEach() throws Exception {
         invoiceRequest = new InvoiceRequest(clientData);
     }
 
     @Test
     void shouldReturnInvoiceWithOneItemWhenRequestInvoiceWithOneItem() {
         Money money = new Money(100);
-        Product product = new Product(Id.generate(), new Money(100), "Marihuanen", ProductType.DRUG); // :)
+        Product product = new Product(Id.generate(), money, "Marihuanen", ProductType.DRUG); // :)
         ProductData productData = product.generateSnapshot();
         RequestItem requestItem = new RequestItem(productData, 1, productData.getPrice());
         invoiceRequest.add(requestItem);
@@ -58,8 +58,8 @@ class BookKeeperTest {
     @Test
     void shouldCallInvoiceTwoTimesWhenRequestInvoiceWithTwoItems() {
         Money money = new Money(100);
-        Product product = new Product(Id.generate(), new Money(100), "Marihuanen", ProductType.DRUG); // :)
-        Product product1 = new Product(Id.generate(), new Money(150), "Cocainen", ProductType.DRUG); // :)
+        Product product = new Product(Id.generate(), money, "Marihuanen", ProductType.DRUG); // :)
+        Product product1 = new Product(Id.generate(), money, "Cocainen", ProductType.DRUG); // :)
         ProductData productData = product.generateSnapshot();
         ProductData productData1 = product1.generateSnapshot();
         RequestItem requestItem = new RequestItem(productData, 1, productData.getPrice());
