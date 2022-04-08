@@ -24,21 +24,20 @@ class BookKeeperTest {
     
     private static ClientData clientData;
     private InvoiceRequest invoiceRequest;
-    private static InvoiceFactory invoiceFactory;
     private static BookKeeper bookKeeper;
     
     @Mock
     private static TaxPolicy taxPolicy;
 
     @BeforeAll
-    static void setUp() throws Exception {
+    static void setUp() {
         clientData = new ClientData(Id.generate(), "franek");
-        invoiceFactory = new InvoiceFactory();
+        InvoiceFactory invoiceFactory = new InvoiceFactory();
         bookKeeper = new BookKeeper(invoiceFactory);
     }
     
     @BeforeEach
-    void setUpBeforeEach() throws Exception {
+    void setUpBeforeEach() {
         invoiceRequest = new InvoiceRequest(clientData);
     }
 
@@ -66,10 +65,66 @@ class BookKeeperTest {
         RequestItem requestItem1 = new RequestItem(productData1, 1, productData1.getPrice());
         invoiceRequest.add(requestItem);
         invoiceRequest.add(requestItem1);
-        
+
         when(taxPolicy.calculateTax(ProductType.DRUG, money)).thenReturn(new Tax(new Money(12.2), "testTax"));
         bookKeeper.issuance(invoiceRequest, taxPolicy);
         verify(taxPolicy, times(2)).calculateTax(ProductType.DRUG, money);
     }
 
+    @Test
+    void shouldReturnInvoiceWithThreeItemWhenRequestInvoiceWithThreeItem() {
+        Money money = new Money(100);
+        Product product = new Product(Id.generate(), money, "Marihuanen", ProductType.DRUG); // :)
+        Product product1 = new Product(Id.generate(), money, "Cocainen", ProductType.DRUG); // :)
+        Product product2 = new Product(Id.generate(), money, "Mefedronen", ProductType.DRUG); // :)
+        ProductData productData = product.generateSnapshot();
+        ProductData productData1 = product1.generateSnapshot();
+        ProductData productData2 = product2.generateSnapshot();
+        RequestItem requestItem = new RequestItem(productData, 1, productData.getPrice());
+        RequestItem requestItem1 = new RequestItem(productData1, 1, productData1.getPrice());
+        RequestItem requestItem2 = new RequestItem(productData2, 1, productData2.getPrice());
+        invoiceRequest.add(requestItem);
+        invoiceRequest.add(requestItem1);
+        invoiceRequest.add(requestItem2);
+
+        when(taxPolicy.calculateTax(ProductType.DRUG, money)).thenReturn(new Tax(new Money(12.2), "testTax"));
+        bookKeeper.issuance(invoiceRequest, taxPolicy);
+        verify(taxPolicy, times(3)).calculateTax(ProductType.DRUG, money);
+    }
+
+    @Test
+    void invoiceItemsSize(){
+        Money money = new Money(100);
+        Product product = new Product(Id.generate(), money, "Marihuanen", ProductType.DRUG); // :)
+        ProductData productData = product.generateSnapshot();
+        RequestItem requestItem = new RequestItem(productData, 1, productData.getPrice());
+        invoiceRequest.add(requestItem);
+
+        when(taxPolicy.calculateTax(ProductType.DRUG, money)).thenReturn(new Tax(new Money(12.2), "testTax"));
+        assertEquals(1, bookKeeper.issuance(invoiceRequest, taxPolicy).getItems().size());
+    }
+
+    @Test
+    void invoicePriceGross(){
+        Money money = new Money(100);
+        Product product = new Product(Id.generate(), money, "Marihuanen", ProductType.DRUG); // :)
+        ProductData productData = product.generateSnapshot();
+        RequestItem requestItem = new RequestItem(productData, 1, productData.getPrice());
+        invoiceRequest.add(requestItem);
+
+        when(taxPolicy.calculateTax(ProductType.DRUG, money)).thenReturn(new Tax(new Money(12.2), "testTax"));
+        assertEquals(productData.getPrice().add(taxPolicy.calculateTax(ProductType.DRUG, productData.getPrice()).getAmount()), bookKeeper.issuance(invoiceRequest, taxPolicy).getItems().get(0).getGros());
+    }
+
+    @Test
+    void invoicePriceNet(){
+        Money money = new Money(100);
+        Product product = new Product(Id.generate(), money, "Marihuanen", ProductType.DRUG); // :)
+        ProductData productData = product.generateSnapshot();
+        RequestItem requestItem = new RequestItem(productData, 1, productData.getPrice());
+        invoiceRequest.add(requestItem);
+
+        when(taxPolicy.calculateTax(ProductType.DRUG, money)).thenReturn(new Tax(new Money(12.2), "testTax"));
+        assertEquals(productData.getPrice(), bookKeeper.issuance(invoiceRequest, taxPolicy).getItems().get(0).getNet());
+    }
 }
