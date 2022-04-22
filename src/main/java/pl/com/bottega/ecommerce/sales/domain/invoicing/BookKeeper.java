@@ -28,7 +28,7 @@ public class BookKeeper {
         for (RequestItem item : invoiceRequest.getItems()) {
             Money net = item.getTotalCost();
             Tax tax = taxPolicy.calculateTax(item.getProductData()
-                                                 .getType(),
+                    .getType(),
                     net);
 
             InvoiceLine invoiceLine = new InvoiceLine(item.getProductData(), item.getQuantity(), net, tax);
