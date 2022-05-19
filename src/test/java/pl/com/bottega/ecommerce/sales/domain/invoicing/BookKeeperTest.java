@@ -18,17 +18,17 @@ import pl.com.bottega.ecommerce.sharedkernel.Money;
 
 @ExtendWith(MockitoExtension.class)
 class BookKeeperTest {
-    static ClientData clientData;
-    static BookKeeper bookKeeper;
-    static Product product;
-    static InvoiceRequest invoiceRequest;
-    static RequestItem requestItem;
+    ClientData clientData;
+    BookKeeper bookKeeper;
+    Product product;
+    InvoiceRequest invoiceRequest;
+    RequestItem requestItem;
 
     @Mock
     static TaxPolicy taxPolicy;
 
-    @BeforeAll
-    static void setUp() {
+    @BeforeEach
+    void setUp() {
         bookKeeper = new BookKeeper(new InvoiceFactory());
         clientData = new ClientData(Id.generate(), "Tomasz");
         product = new Product(Id.generate(), new Money(10.20), "Cheese", ProductType.FOOD);
